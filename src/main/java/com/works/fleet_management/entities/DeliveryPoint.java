@@ -26,10 +26,9 @@ public class DeliveryPoint extends BaseEntity implements Serializable {
     @Column(name = "point_name", length = 100, nullable = false)
     private String pointName;
 
-    //@Column(name = "point_id",columnDefinition = "serial")
     @Generated(GenerationTime.INSERT)
     @Column(name = "point_id", insertable = false ,columnDefinition = "serial")
-    private Long pointId;
+    private Integer pointId;
 
     @OneToMany(mappedBy = "deliveryPoint")
     private Set<Bag> bags;

@@ -10,6 +10,7 @@ import com.works.fleet_management.entities.Bag;
 import com.works.fleet_management.entities.DeliveryPoint;
 import com.works.fleet_management.entities.Package;
 import com.works.fleet_management.entities.PackagesToBag;
+import com.works.fleet_management.entities.enums.PackageAndBagStatus;
 import com.works.fleet_management.model.abstarcts.projections.BagsInfo;
 import com.works.fleet_management.model.request.PackagesToBagDto;
 import com.works.fleet_management.repositories.BagRepository;
@@ -49,6 +50,10 @@ public class PackagesToBagService implements IPackagesToBagService {
         if(!optionalPackage.isPresent()){
             return new ErrorResult(Messages.errorNoRecordFoundPackage);
         }
+
+        Package aPackage= optionalPackage.get();
+        aPackage.setPackageStatus(PackageAndBagStatus.LOADED_INTO_BAG);
+        packageRepository.save(aPackage);
 
         PackagesToBag packagesToBag= new PackagesToBag();
         packagesToBag.setBagBarcode(packagesToBagDto.getPackageBarcode());

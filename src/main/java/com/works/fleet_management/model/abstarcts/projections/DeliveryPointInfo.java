@@ -3,5 +3,5 @@ package com.works.fleet_management.model.abstarcts.projections;
 public interface DeliveryPointInfo {
     String getPointName();
 
-    Long getPointId();
+    Integer getPointId();
 }

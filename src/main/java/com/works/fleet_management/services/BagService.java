@@ -7,7 +7,6 @@ import com.works.fleet_management.core.utilities.results.Result;
 import com.works.fleet_management.core.utilities.results.SuccessDataResult;
 import com.works.fleet_management.entities.Bag;
 import com.works.fleet_management.entities.DeliveryPoint;
-import com.works.fleet_management.entities.Package;
 import com.works.fleet_management.model.abstarcts.projections.BagsInfo;
 import com.works.fleet_management.model.request.BagDto;
 import com.works.fleet_management.repositories.BagRepository;
@@ -44,24 +43,6 @@ public class BagService implements IBagService {
         }
 
         Bag bag=new Bag();
-        /*
-        bagDto.getPackagesToBag().forEach(aPackage->{
-            Optional<Package> byPackageBarcode=packageRepository.findByPackageBarcode(aPackage.getPackageBarcode());
-            Set<Package> packageList;
-            if(!byPackageBarcode.isPresent()){
-                Package newPackage=new Package();
-                newPackage.setPackageStatus(bagDto.getPackageStatus());
-                newPackage.setPackageBarcode(aPackage.getPackageBarcode());
-                newPackage.setVolumetricWeight(aPackage.getVolumetricWeight());
-                if(bagDto.getDeliveryPointPointId()!= aPackage.getDeliveryPointPointId()){
-                    ErrorResult hata = new ErrorResult("Hata");
-                    return hata;
-                }
-                newPackage.setDeliveryPoint(byPointId.get());
-            }
-        });
-
-         bag.setPackagesToBag();*/
 
         bag.setBagBarcode(bagDto.getBagBarcode());
         bag.setDeliveryPoint(byPointId.get());

@@ -8,6 +8,7 @@ import com.works.fleet_management.core.utilities.results.SuccessDataResult;
 import com.works.fleet_management.entities.Bag;
 import com.works.fleet_management.entities.DeliveryPoint;
 import com.works.fleet_management.entities.Package;
+import com.works.fleet_management.entities.enums.PackageAndBagStatus;
 import com.works.fleet_management.model.abstarcts.projections.BagsInfo;
 import com.works.fleet_management.model.request.PackageDto;
 import com.works.fleet_management.repositories.DeliveryPointRepository;
@@ -35,13 +36,26 @@ public class PackageService implements IPackageService {
     }
 
     @Override
+    public Package updateState(String PackageBarcode, PackageAndBagStatus packageAndBagStatus) {
+        Optional<Package> optionalPackage = packageRepository.findByPackageBarcode(PackageBarcode);
+        if(!optionalPackage.isPresent()){
+            return null;
+        }
+        Package newPackage= optionalPackage.get();
+        newPackage.setPackageStatus(packageAndBagStatus);
+
+        return packageRepository.save(newPackage);
+
+    }
+
+    @Override
     public Result save(PackageDto packageDto) {
-        Optional<DeliveryPoint> byPointId = deliveryPointRepository.findByPointId(packageDto.getDeliveryPointPointId());
-        if(!byPointId.isPresent()){
+        Optional<DeliveryPoint> optionalPoint = deliveryPointRepository.findByPointId(packageDto.getDeliveryPointPointId());
+        if(!optionalPoint.isPresent()){
             return new ErrorResult(Messages.errorNoRecordFoundDelivery);
         }
         Package aPackage=new Package();
-        aPackage.setDeliveryPoint(byPointId.get());
+        aPackage.setDeliveryPoint(optionalPoint.get());
         aPackage.setPackageBarcode(packageDto.getPackageBarcode());
         aPackage.setPackageStatus(packageDto.getPackageStatus());
         aPackage.setVolumetricWeight(packageDto.getVolumetricWeight());

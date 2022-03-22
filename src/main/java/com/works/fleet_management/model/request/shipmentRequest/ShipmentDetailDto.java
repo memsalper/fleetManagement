@@ -9,6 +9,6 @@ import java.util.List;
 @Getter
 @Setter
 public class ShipmentDetailDto{
-    private Long deliveryPoint;
+    private Integer deliveryPoint;
     private List<DeliveriesDetailDto> deliveries;
 }
