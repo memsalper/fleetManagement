@@ -7,6 +7,8 @@ import com.works.fleet_management.core.utilities.results.Result;
 import com.works.fleet_management.core.utilities.results.SuccessDataResult;
 import com.works.fleet_management.entities.Bag;
 import com.works.fleet_management.entities.DeliveryPoint;
+import com.works.fleet_management.entities.Package;
+import com.works.fleet_management.entities.enums.PackageAndBagStatus;
 import com.works.fleet_management.model.abstarcts.projections.BagsInfo;
 import com.works.fleet_management.model.request.BagDto;
 import com.works.fleet_management.repositories.BagRepository;
@@ -46,9 +48,21 @@ public class BagService implements IBagService {
 
         bag.setBagBarcode(bagDto.getBagBarcode());
         bag.setDeliveryPoint(byPointId.get());
-        bag.setState(bagDto.getPackageStatus());
+        bag.setPackageStatus(PackageAndBagStatus.CREATED);
         bagRepository.save(bag);
         return new SuccessDataResult<>( bagDto, Messages.successSaved);
+    }
+
+    @Override
+    public Bag updateState(String bagBarcode, PackageAndBagStatus packageAndBagStatus) {
+        Optional<Bag> optionalBag = bagRepository.findByBagBarcode(bagBarcode);
+        if(!optionalBag.isPresent()){
+            return null;
+        }
+        Bag newBag= optionalBag.get();
+        newBag.setPackageStatus(packageAndBagStatus);
+
+        return bagRepository.save(newBag);
     }
 
     @Override

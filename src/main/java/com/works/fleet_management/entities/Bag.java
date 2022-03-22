@@ -25,7 +25,7 @@ public class Bag extends BaseEntity implements Serializable {
 
     @Column(name ="state", columnDefinition = "SMALLINT", nullable = false)
     @Convert(converter = PackageAndBagStatusConverter.class)
-    private PackageAndBagStatus state;
+    private PackageAndBagStatus packageStatus;
 
     @JoinColumn(name="delivery_point_id", nullable = false, referencedColumnName = "point_id")
     @ManyToOne(optional=true, fetch = FetchType.LAZY)

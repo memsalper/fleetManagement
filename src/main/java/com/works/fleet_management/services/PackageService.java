@@ -36,8 +36,8 @@ public class PackageService implements IPackageService {
     }
 
     @Override
-    public Package updateState(String PackageBarcode, PackageAndBagStatus packageAndBagStatus) {
-        Optional<Package> optionalPackage = packageRepository.findByPackageBarcode(PackageBarcode);
+    public Package updateState(String packageBarcode, PackageAndBagStatus packageAndBagStatus) {
+        Optional<Package> optionalPackage = packageRepository.findByPackageBarcode(packageBarcode);
         if(!optionalPackage.isPresent()){
             return null;
         }
@@ -57,7 +57,7 @@ public class PackageService implements IPackageService {
         Package aPackage=new Package();
         aPackage.setDeliveryPoint(optionalPoint.get());
         aPackage.setPackageBarcode(packageDto.getPackageBarcode());
-        aPackage.setPackageStatus(packageDto.getPackageStatus());
+        aPackage.setPackageStatus(PackageAndBagStatus.CREATED);
         aPackage.setVolumetricWeight(packageDto.getVolumetricWeight());
         packageRepository.save(aPackage);
         return new SuccessDataResult<>( packageDto, Messages.successSaved);
