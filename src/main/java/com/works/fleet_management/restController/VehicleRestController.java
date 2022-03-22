@@ -1,0 +1,32 @@
+package com.works.fleet_management.restController;
+
+import com.works.fleet_management.core.utilities.conctants.Messages;
+import com.works.fleet_management.core.utilities.paths.ApiPaths;
+import com.works.fleet_management.core.utilities.results.Result;
+import com.works.fleet_management.core.utilities.results.SuccessDataResult;
+import com.works.fleet_management.model.request.shipmentRequest.ShipmentsDto;
+import com.works.fleet_management.model.request.VehicleDto;
+import com.works.fleet_management.services.VehicleService;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@CrossOrigin()
+@RequestMapping(value = ApiPaths.VehicleController.CONTROLLER)
+public class VehicleRestController {
+    private final VehicleService vehicleService;
+
+    public VehicleRestController(VehicleService vehicleService) {
+        this.vehicleService = vehicleService;
+    }
+
+    @PostMapping("/save")
+    public Result save(@RequestBody VehicleDto vehicleDto){
+        return vehicleService.save(vehicleDto);
+    }
+
+    @PostMapping("/shipments")
+    public Result save(@RequestBody ShipmentsDto shipmentsDto){
+
+        return new SuccessDataResult<>(shipmentsDto, Messages.successListed);
+    }
+}
