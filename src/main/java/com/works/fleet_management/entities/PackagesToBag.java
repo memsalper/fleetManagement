@@ -8,7 +8,6 @@ import lombok.Setter;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.io.Serializable;
 
@@ -21,7 +20,7 @@ import java.io.Serializable;
 public class PackagesToBag extends BaseEntity implements Serializable {
 
 
-    @Column(name = "package_barcode", length = 20, nullable = false)
+    @Column(name = "package_barcode", length = 20, nullable = false, unique = true)
     private String packageBarcode;
 
     @Column(name = "bag_barcode", length = 20, nullable = false)

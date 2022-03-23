@@ -1,5 +1,6 @@
 package com.works.fleet_management.entities.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -11,5 +12,6 @@ public enum PackageAndBagStatus {
     LOADED(3),
     UNLOADED(4);
 
+    @JsonValue
     private final Integer tag;
 }

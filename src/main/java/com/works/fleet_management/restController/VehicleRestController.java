@@ -24,9 +24,13 @@ public class VehicleRestController {
         return vehicleService.save(vehicleDto);
     }
 
-    @PostMapping("/shipments")
-    public Result save(@RequestBody ShipmentsDto shipmentsDto){
+    @PostMapping("/packageAndBagUnload")
+    public Result packageAndBagUnload(@RequestBody ShipmentsDto shipmentsDto){
+        return vehicleService.packageAndBagUnload(shipmentsDto);
+    }
 
-        return new SuccessDataResult<>(shipmentsDto, Messages.successListed);
+    @PostMapping("/packageAndBagLoad")
+    public Result packageAndBagLoad(@RequestBody ShipmentsDto shipmentsDto){
+        return vehicleService.packageAndBagLoad(shipmentsDto);
     }
 }

@@ -13,6 +13,5 @@ import java.util.Set;
 public class BagDto implements IDto {
     private String bagBarcode;
     private PackageAndBagStatus packageStatus;
-    private Long deliveryPointPointId;
-    //private Set<PackageDto> packagesToBag;
+    private Integer deliveryPointPointId;
 }
