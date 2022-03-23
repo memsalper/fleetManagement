@@ -175,7 +175,7 @@ public class VehicleService implements IVehicleService {
                     deliveriesDetail.setState(PackageAndBagStatus.LOADED);
 
 
-                    List<PackagesToBagInfo> packagesToBagList = packagesToBagRepository.findByBagBarcode(deliveriesDetail.getBarcode(), PackagesToBagInfo.class);
+                    /*List<PackagesToBagInfo> packagesToBagList = packagesToBagRepository.findByBagBarcode(deliveriesDetail.getBarcode(), PackagesToBagInfo.class);
 
                     //Bag a bağlı package işlemleri bu kısımda yapılıyor
                     for (PackagesToBagInfo packagesToBag : packagesToBagList) {
@@ -190,9 +190,7 @@ public class VehicleService implements IVehicleService {
 
                         mapToDto(route, newPackage.getPackageBarcode());
 
-                    }
-
-
+                    }*/
                 } else {
                     Optional<Package> optionalPackage = packageRepository.findByPackageBarcode(deliveriesDetail.getBarcode());
                     if (!optionalPackage.isPresent()) {

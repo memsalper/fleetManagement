@@ -18,8 +18,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PackagesToBag extends BaseEntity implements Serializable {
-
-
     @Column(name = "package_barcode", length = 20, nullable = false, unique = true)
     private String packageBarcode;
 
