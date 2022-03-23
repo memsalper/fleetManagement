@@ -1,13 +1,11 @@
 package com.works.fleet_management.model.request;
 
-
-import com.works.fleet_management.entities.enums.PackageAndBagStatus;
 import com.works.fleet_management.model.abstarcts.IDto;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
 public class LogShipmentDto implements IDto {
     private String barcode;
     private Integer deliveryPointPointId;

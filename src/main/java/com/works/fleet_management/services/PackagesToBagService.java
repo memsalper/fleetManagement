@@ -12,6 +12,8 @@ import com.works.fleet_management.entities.Package;
 import com.works.fleet_management.entities.PackagesToBag;
 import com.works.fleet_management.entities.enums.PackageAndBagStatus;
 import com.works.fleet_management.model.abstarcts.projections.BagsInfo;
+import com.works.fleet_management.model.abstarcts.projections.PackageInfo;
+import com.works.fleet_management.model.abstarcts.projections.PackagesToBagInfo;
 import com.works.fleet_management.model.request.PackagesToBagDto;
 import com.works.fleet_management.repositories.BagRepository;
 import com.works.fleet_management.repositories.PackageRepository;
@@ -35,8 +37,8 @@ public class PackagesToBagService implements IPackagesToBagService {
     }
 
     @Override
-    public DataResult<List<BagsInfo>> getAll() {
-        return null;
+    public DataResult<List<PackagesToBagInfo>> getAll() {
+        return new SuccessDataResult<>(packagesToBagRepository.findAllBy(PackagesToBagInfo.class),Messages.successListed);
     }
 
     @Override

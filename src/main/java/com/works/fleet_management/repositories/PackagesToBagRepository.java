@@ -10,6 +10,7 @@ import java.util.UUID;
 public interface PackagesToBagRepository extends JpaRepository<PackagesToBag, UUID> {
     <T> List<T> findByBagBarcode(String bagBarcode,Class<T> clz);
     Optional<PackagesToBag> findByPackageBarcode(String packageBarcode);
+    <T> List<T> findAllBy(Class<T> clz);
 
 
 }

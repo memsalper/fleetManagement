@@ -10,6 +10,7 @@ import com.works.fleet_management.entities.DeliveryPoint;
 import com.works.fleet_management.entities.Package;
 import com.works.fleet_management.entities.enums.PackageAndBagStatus;
 import com.works.fleet_management.model.abstarcts.projections.BagsInfo;
+import com.works.fleet_management.model.abstarcts.projections.LogShipmentInfo;
 import com.works.fleet_management.model.request.BagDto;
 import com.works.fleet_management.repositories.BagRepository;
 import com.works.fleet_management.repositories.DeliveryPointRepository;
@@ -49,6 +50,7 @@ public class BagService implements IBagService {
         bag.setBagBarcode(bagDto.getBagBarcode());
         bag.setDeliveryPoint(byPointId.get());
         bag.setPackageStatus(PackageAndBagStatus.CREATED);
+        bagDto.setPackageStatus(PackageAndBagStatus.CREATED);
         bagRepository.save(bag);
         return new SuccessDataResult<>( bagDto, Messages.successSaved);
     }
@@ -67,6 +69,6 @@ public class BagService implements IBagService {
 
     @Override
     public DataResult<List<BagsInfo>> getAll() {
-        return null;
+        return new SuccessDataResult<>(bagRepository.findAllBy(BagsInfo.class),Messages.successListed);
     }
 }

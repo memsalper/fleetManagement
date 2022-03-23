@@ -4,6 +4,8 @@ import com.works.fleet_management.core.utilities.results.Result;
 import com.works.fleet_management.entities.Bag;
 import com.works.fleet_management.entities.Package;
 import com.works.fleet_management.model.request.VehicleDto;
+import com.works.fleet_management.model.request.shipmentRequest.DeliveriesDetailDto;
+import com.works.fleet_management.model.request.shipmentRequest.ShipmentDetailDto;
 import com.works.fleet_management.model.request.shipmentRequest.ShipmentsDto;
 import com.works.fleet_management.services.abstracts.base.IBaseService;
 

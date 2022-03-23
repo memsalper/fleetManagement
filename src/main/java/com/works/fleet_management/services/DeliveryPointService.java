@@ -6,6 +6,7 @@ import com.works.fleet_management.core.utilities.results.Result;
 import com.works.fleet_management.core.utilities.results.SuccessDataResult;
 import com.works.fleet_management.entities.DeliveryPoint;
 import com.works.fleet_management.model.abstarcts.projections.DeliveryPointInfo;
+import com.works.fleet_management.model.abstarcts.projections.PackagesToBagInfo;
 import com.works.fleet_management.model.request.DeliveryPointDto;
 import com.works.fleet_management.repositories.DeliveryPointRepository;
 import com.works.fleet_management.services.abstracts.IDeliveryPointService;
@@ -23,7 +24,7 @@ public class DeliveryPointService implements IDeliveryPointService {
 
     @Override
     public DataResult<List<DeliveryPointInfo>> getAll() {
-        return null;
+        return new SuccessDataResult<>(deliveryPointRepository.findAllBy(DeliveryPointInfo.class),Messages.successListed);
     }
 
     @Override

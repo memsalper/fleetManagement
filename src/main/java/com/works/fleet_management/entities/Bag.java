@@ -19,9 +19,9 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Bag extends BaseEntity implements Serializable {
+
     @Column(name = "bag_barcode", length = 20, nullable = false, unique = true)
     private String bagBarcode;
-
 
     @Column(name ="state", columnDefinition = "SMALLINT", nullable = false)
     @Convert(converter = PackageAndBagStatusConverter.class)

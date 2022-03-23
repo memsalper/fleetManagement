@@ -9,6 +9,7 @@ import com.works.fleet_management.entities.Package;
 import com.works.fleet_management.entities.enums.PackageAndBagStatus;
 import com.works.fleet_management.model.abstarcts.projections.PackagesListInBag;
 import com.works.fleet_management.model.abstarcts.projections.PackagesToBagInfo;
+import com.works.fleet_management.model.request.LogShipmentDto;
 import com.works.fleet_management.model.request.VehicleDto;
 import com.works.fleet_management.model.request.shipmentRequest.DeliveriesDetailDto;
 import com.works.fleet_management.model.request.shipmentRequest.ShipmentDetailDto;
@@ -28,14 +29,15 @@ public class VehicleService implements IVehicleService {
     private final BagRepository bagRepository;
     private final PackageRepository packageRepository;
     private final PackagesToBagRepository packagesToBagRepository;
-    private final DeliveryPointRepository deliveryPointRepository;
+    private final LogShipmentService logShipmentService;
 
-    public VehicleService(VehicleRepository vehicleRepository, BagRepository bagRepository, PackageRepository packageRepository, PackagesToBagRepository packagesToBagRepository, DeliveryPointRepository deliveryPointRepository) {
+
+    public VehicleService(VehicleRepository vehicleRepository, BagRepository bagRepository, PackageRepository packageRepository, PackagesToBagRepository packagesToBagRepository, LogShipmentService logShipmentService) {
         this.vehicleRepository = vehicleRepository;
         this.bagRepository = bagRepository;
         this.packageRepository = packageRepository;
         this.packagesToBagRepository = packagesToBagRepository;
-        this.deliveryPointRepository = deliveryPointRepository;
+        this.logShipmentService = logShipmentService;
     }
 
     @Override
@@ -57,71 +59,11 @@ public class VehicleService implements IVehicleService {
         for (ShipmentDetailDto route : shipmentsDto.getRoute()) {
             for (DeliveriesDetailDto deliveriesDetail : route.getDeliveries()) {
 
-                //eğer Bag ise
+                //Eğer Bag ise
                 if (deliveriesDetail.getBarcode().startsWith("C")) {
-                    Bag newBag = checkBagDeliveryPoint(deliveriesDetail.getBarcode(), route.getDeliveryPoint());
-                    if (newBag != null) {
-                        newBag.setPackageStatus(PackageAndBagStatus.UNLOADED);
-                        bagRepository.save(newBag);
-                        deliveriesDetail.setState(PackageAndBagStatus.UNLOADED);
-
-                        List<PackagesToBagInfo> packagesToBagList = packagesToBagRepository.findByBagBarcode(deliveriesDetail.getBarcode(), PackagesToBagInfo.class);
-
-                        //Bag a bağlı package işlemleri bu kısımda yapılıyor
-                        for (PackagesToBagInfo packagesToBag : packagesToBagList) {
-                            Package newPackage = checkPackageDeliveryPoint(packagesToBag.getPackageBarcode(), route.getDeliveryPoint(), true);
-                            if (newPackage != null) {
-                                newPackage.setPackageStatus(PackageAndBagStatus.UNLOADED);
-                                packageRepository.save(newPackage);
-                                //response stateleri güncelleniyor
-                                extracted(route, newPackage.getPackageBarcode());
-                            }
-                        }
-                    } else {
-                        extracted(route, deliveriesDetail.getBarcode());
-                    }
+                    BagUnload(route, deliveriesDetail);
                 } else {
-                    Optional<PackagesToBag> optionalPackagesToBag = packagesToBagRepository.findByPackageBarcode(deliveriesDetail.getBarcode());
-                    //Package'ın bağlı olduğu Bag'e ait diğer Package'ler aynı DeliveryPoint'e sahip ise ilgili Bag'i ve Package'ları Unloaded yap
-                    if (optionalPackagesToBag.isPresent()) {
-                        List<PackagesListInBag> packagesListInBag = packagesToBagRepository.findByBagBarcode(optionalPackagesToBag.get().getBagBarcode(), PackagesListInBag.class);
-                        List<DeliveriesDetailDto> packageList = route.getDeliveries().stream().filter(pckg -> pckg.getBarcode().startsWith("P")).collect(Collectors.toList());
-                        boolean b = false;
-                        for (PackagesListInBag pckg : packagesListInBag) {
-                            b = packageList.stream().anyMatch(p -> p.getBarcode().equals(pckg.getPackageBarcode()));
-                            if (!b)
-                                break;
-                        }
-                        if (b) {
-                            Bag newBag = checkBagDeliveryPoint(optionalPackagesToBag.get().getBagBarcode(), route.getDeliveryPoint());
-                            if (newBag != null) {
-                                newBag.setPackageStatus(PackageAndBagStatus.UNLOADED);
-                                bagRepository.save(newBag);
-                                packagesListInBag.forEach(pckg -> {
-                                    Package newPackageInBag = checkPackageDeliveryPoint(pckg.getPackageBarcode(), route.getDeliveryPoint(), true);
-                                    if (newPackageInBag != null) {
-                                        newPackageInBag.setPackageStatus(PackageAndBagStatus.UNLOADED);
-                                        packageRepository.save(newPackageInBag);
-                                        deliveriesDetail.setState(PackageAndBagStatus.UNLOADED);
-                                    } else {
-                                        extracted(route, pckg.getPackageBarcode());
-                                    }
-                                });
-                            }
-                        }
-
-                    } else {
-                        Package newPackage = checkPackageDeliveryPoint(deliveriesDetail.getBarcode(), route.getDeliveryPoint(), false);
-                        if (newPackage != null) {
-                            newPackage.setPackageStatus(PackageAndBagStatus.UNLOADED);
-                            packageRepository.save(newPackage);
-                            deliveriesDetail.setState(PackageAndBagStatus.UNLOADED);
-                        } else {
-                            deliveriesDetail.setState(PackageAndBagStatus.LOADED);
-                        }
-                    }
-
-
+                    PackageUnload(route, deliveriesDetail);
                 }
             }
         }
@@ -129,11 +71,83 @@ public class VehicleService implements IVehicleService {
         return new SuccessDataResult<>(shipmentsDto, Messages.successListed);
     }
 
-    private void extracted(ShipmentDetailDto route, String barcode) {
+    private void PackageUnload(ShipmentDetailDto route, DeliveriesDetailDto deliveriesDetail) {
+        Optional<PackagesToBag> optionalPackagesToBag = packagesToBagRepository.findByPackageBarcode(deliveriesDetail.getBarcode());
+        //Package'ın bağlı olduğu Bag'e ait diğer Package'ler aynı DeliveryPoint'e sahip ise ilgili Bag'i ve Package'ları "Unloaded" yapılır
+        if (optionalPackagesToBag.isPresent()) {
+            List<PackagesListInBag> packagesListInBag = packagesToBagRepository.findByBagBarcode(optionalPackagesToBag.get().getBagBarcode(), PackagesListInBag.class);
+            List<DeliveriesDetailDto> packageList = route.getDeliveries().stream().filter(pckg -> pckg.getBarcode().startsWith("P")).collect(Collectors.toList());
+            
+            // Bag'e bağlı Packagelar ile route'a ait Packagelar kıyaslanır hepsi aynı route da ise "Unloaded" yapılır
+            boolean keep = false;
+            for (PackagesListInBag pckg : packagesListInBag) {
+                keep = packageList.stream().anyMatch(p -> p.getBarcode().equals(pckg.getPackageBarcode()));
+                if (!keep) break;
+            }
+            if (keep) {
+                Bag newBag = checkBagDeliveryPoint(optionalPackagesToBag.get().getBagBarcode(), route.getDeliveryPoint());
+                if (newBag != null) {
+                    newBag.setPackageStatus(PackageAndBagStatus.UNLOADED);
+                    bagRepository.save(newBag);
+                    packagesListInBag.forEach(pckg -> {
+                        Package newPackageInBag = checkPackageDeliveryPoint(pckg.getPackageBarcode(), route.getDeliveryPoint(), true);
+                        if (newPackageInBag != null) {
+                            newPackageInBag.setPackageStatus(PackageAndBagStatus.UNLOADED);
+                            packageRepository.save(newPackageInBag);
+                            deliveriesDetail.setState(PackageAndBagStatus.UNLOADED);
+                        } else {
+                            //log tutulur
+                            logShipmentService.save(new LogShipmentDto(pckg.getPackageBarcode(), route.getDeliveryPoint()));
+                            mapToDto(route, pckg.getPackageBarcode());
+                        }
+                    });
+                }
+            }
+        } else { //Bag'den bağımsız bir Package ise "Unloaded" işlemi burada yapılır
+            Package newPackage = checkPackageDeliveryPoint(deliveriesDetail.getBarcode(), route.getDeliveryPoint(), false);
+            if (newPackage != null) {
+                newPackage.setPackageStatus(PackageAndBagStatus.UNLOADED);
+                packageRepository.save(newPackage);
+                deliveriesDetail.setState(PackageAndBagStatus.UNLOADED);
+            } else {
+                logShipmentService.save(new LogShipmentDto(deliveriesDetail.getBarcode(), route.getDeliveryPoint()));
+                deliveriesDetail.setState(PackageAndBagStatus.LOADED);
+            }
+        }
+    }
+
+    private void BagUnload(ShipmentDetailDto route, DeliveriesDetailDto deliveriesDetail) {
+        Bag newBag = checkBagDeliveryPoint(deliveriesDetail.getBarcode(), route.getDeliveryPoint());
+        if (newBag != null) {
+            newBag.setPackageStatus(PackageAndBagStatus.UNLOADED);
+            bagRepository.save(newBag);
+            deliveriesDetail.setState(PackageAndBagStatus.UNLOADED);
+
+            List<PackagesToBagInfo> packagesToBagList = packagesToBagRepository.findByBagBarcode(deliveriesDetail.getBarcode(), PackagesToBagInfo.class);
+
+            //Bag a bağlı Package işlemleri bu kısımda yapılıyor
+            for (PackagesToBagInfo packagesToBag : packagesToBagList) {
+                Package newPackage = checkPackageDeliveryPoint(packagesToBag.getPackageBarcode(), route.getDeliveryPoint(), true);
+                if (newPackage != null) {
+                    newPackage.setPackageStatus(PackageAndBagStatus.UNLOADED);
+                    packageRepository.save(newPackage);
+                   
+                    mapToDto(route, newPackage.getPackageBarcode());
+                }else {
+                    logShipmentService.save(new LogShipmentDto(packagesToBag.getPackageBarcode(), route.getDeliveryPoint()));
+                }
+            }
+        } else {
+            mapToDto(route, deliveriesDetail.getBarcode());
+        }
+    }
+    
+    //Response stateleri güncelleniyor
+    private void mapToDto(ShipmentDetailDto route, String barcode) {
         route.getDeliveries().stream()
                 .filter(pckg -> pckg.getBarcode().equals(barcode))
                 .findFirst()
-                .ifPresent(pckg -> pckg.setState(PackageAndBagStatus.UNLOADED));
+                .ifPresent(pckg -> pckg.setState(PackageAndBagStatus.LOADED));
     }
 
     @Override
@@ -144,10 +158,10 @@ public class VehicleService implements IVehicleService {
         }
 
 
-        //Bag, bag e bağlı package ve bağımsız packagelar "loaded" state e çekiliyor
+        //Bag, Bag'e bağlı Packagelar ve bağımsız Packagelar "Loaded" state e çekiliyor
         for (ShipmentDetailDto route : shipmentsDto.getRoute()) {
             for (DeliveriesDetailDto deliveriesDetail : route.getDeliveries()) {
-                //eğer Bag ise
+                //Eğer Bag ise
                 if (deliveriesDetail.getBarcode().substring(0, 1).equals("C")) {
                     Optional<Bag> optionalBag = bagRepository.findByBagBarcode(deliveriesDetail.getBarcode());
                     if (!optionalBag.isPresent()) {
@@ -174,11 +188,7 @@ public class VehicleService implements IVehicleService {
                         newPackage.setPackageStatus(PackageAndBagStatus.LOADED);
                         packageRepository.save(newPackage);
 
-                        //response stateleri güncelleniyor
-                        route.getDeliveries().stream()
-                                .filter(pckg -> pckg.getBarcode().equals(newPackage.getPackageBarcode()))
-                                .findFirst()
-                                .ifPresent(pckg -> pckg.setState(PackageAndBagStatus.LOADED));
+                        mapToDto(route, newPackage.getPackageBarcode());
 
                     }
 
@@ -230,15 +240,19 @@ public class VehicleService implements IVehicleService {
     //Bag doğru yere mi gidiyor kontrol et ve logla
     @Override
     public Bag checkBagDeliveryPoint(String barcode, Integer deliveryPoint) {
-        //logu burda tut
         Optional<Bag> optionalBag = bagRepository.findByBagBarcode(barcode);
         if (optionalBag.isEmpty()) return null;
 
         switch (optionalBag.get().getDeliveryPoint().getPointId()) {
             case 2:
             case 3:
-                return deliveryPoint == optionalBag.get().getDeliveryPoint().getPointId() ? optionalBag.get() : null;
+                if(deliveryPoint != optionalBag.get().getDeliveryPoint().getPointId()) {
+                    logShipmentService.save(new LogShipmentDto(barcode, deliveryPoint));
+                    return null;
+                }
+                return optionalBag.get();
             default:
+                logShipmentService.save(new LogShipmentDto(barcode, deliveryPoint));
                 return null;
         }
     }
@@ -247,7 +261,6 @@ public class VehicleService implements IVehicleService {
     //Package doğru yere mi gidiyor kontrol et ve logla
     @Override
     public Package checkPackageDeliveryPoint(String barcode, Integer deliveryPoint, Boolean packageInBag) {
-        //logu burda tut
         Optional<Package> optionalPackage = packageRepository.findByPackageBarcode(barcode);
         if (optionalPackage.isEmpty()) return null;
 

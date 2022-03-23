@@ -10,6 +10,7 @@ import com.works.fleet_management.entities.DeliveryPoint;
 import com.works.fleet_management.entities.Package;
 import com.works.fleet_management.entities.enums.PackageAndBagStatus;
 import com.works.fleet_management.model.abstarcts.projections.BagsInfo;
+import com.works.fleet_management.model.abstarcts.projections.PackageInfo;
 import com.works.fleet_management.model.request.PackageDto;
 import com.works.fleet_management.repositories.DeliveryPointRepository;
 import com.works.fleet_management.repositories.PackageRepository;
@@ -31,8 +32,8 @@ public class PackageService implements IPackageService {
     }
 
     @Override
-    public DataResult<List<BagsInfo>> getAll() {
-        return null;
+    public DataResult<List<PackageInfo>> getAll() {
+        return new SuccessDataResult<>(packageRepository.findAllBy(PackageInfo.class),Messages.successListed);
     }
 
     @Override
@@ -58,6 +59,7 @@ public class PackageService implements IPackageService {
         aPackage.setDeliveryPoint(optionalPoint.get());
         aPackage.setPackageBarcode(packageDto.getPackageBarcode());
         aPackage.setPackageStatus(PackageAndBagStatus.CREATED);
+        packageDto.setPackageStatus(PackageAndBagStatus.CREATED);
         aPackage.setVolumetricWeight(packageDto.getVolumetricWeight());
         packageRepository.save(aPackage);
         return new SuccessDataResult<>( packageDto, Messages.successSaved);
