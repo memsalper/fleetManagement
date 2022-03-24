@@ -78,13 +78,13 @@ public class VehicleService implements IVehicleService {
             List<PackagesListInBag> packagesListInBag = packagesToBagRepository.findByBagBarcode(optionalPackagesToBag.get().getBagBarcode(), PackagesListInBag.class);
             List<DeliveriesDetailDto> packageList = route.getDeliveries().stream().filter(pckg -> pckg.getBarcode().startsWith("P")).collect(Collectors.toList());
             
-            // Bag'e bağlı Packagelar ile route'a ait Packagelar kıyaslanır hepsi aynı route da ise "Unloaded" yapılır
-            boolean keep = false;
+            // Bag'e bağlı Packagelar ile mevcut route'a ait Packagelar kıyaslanır hepsi aynı route da ise "Unloaded" yapılır
+            boolean temp  = false;
             for (PackagesListInBag pckg : packagesListInBag) {
-                keep = packageList.stream().anyMatch(p -> p.getBarcode().equals(pckg.getPackageBarcode()));
-                if (!keep) break;
+                temp  = packageList.stream().anyMatch(p -> p.getBarcode().equals(pckg.getPackageBarcode()));
+                if (!temp) break;
             }
-            if (keep) {
+            if (temp) {
                 Bag newBag = checkBagDeliveryPoint(optionalPackagesToBag.get().getBagBarcode(), route.getDeliveryPoint());
                 if (newBag != null) {
                     newBag.setPackageStatus(PackageAndBagStatus.UNLOADED);
@@ -175,7 +175,7 @@ public class VehicleService implements IVehicleService {
                     deliveriesDetail.setState(PackageAndBagStatus.LOADED);
 
 
-                    /*List<PackagesToBagInfo> packagesToBagList = packagesToBagRepository.findByBagBarcode(deliveriesDetail.getBarcode(), PackagesToBagInfo.class);
+                    List<PackagesToBagInfo> packagesToBagList = packagesToBagRepository.findByBagBarcode(deliveriesDetail.getBarcode(), PackagesToBagInfo.class);
 
                     //Bag a bağlı package işlemleri bu kısımda yapılıyor
                     for (PackagesToBagInfo packagesToBag : packagesToBagList) {
@@ -190,7 +190,7 @@ public class VehicleService implements IVehicleService {
 
                         mapToDto(route, newPackage.getPackageBarcode());
 
-                    }*/
+                    }
                 } else {
                     Optional<Package> optionalPackage = packageRepository.findByPackageBarcode(deliveriesDetail.getBarcode());
                     if (!optionalPackage.isPresent()) {
@@ -204,14 +204,14 @@ public class VehicleService implements IVehicleService {
                     if (optionalPackagesToBag.isPresent()) {
                         List<PackagesListInBag> packagesListInBag = packagesToBagRepository.findByBagBarcode(optionalPackagesToBag.get().getBagBarcode(), PackagesListInBag.class);
                         List<DeliveriesDetailDto> packageList = route.getDeliveries().stream().filter(pckg -> pckg.getBarcode().substring(0, 1).equals("P")).collect(Collectors.toList());
-                        boolean b = false;
+                        boolean temp  = false;
                         for (PackagesListInBag pckg : packagesListInBag) {
-                            b = packageList.stream().anyMatch(p -> p.getBarcode().equals(pckg.getPackageBarcode()));
-                            if (!b)
+                            temp  = packageList.stream().anyMatch(p -> p.getBarcode().equals(pckg.getPackageBarcode()));
+                            if (!temp )
                                 break;
                         }
 
-                        if (b) {
+                        if (temp ) {
                             Optional<Bag> optionalBag = bagRepository.findByBagBarcode(optionalPackagesToBag.get().getBagBarcode());
                             if (optionalBag.isPresent()) {
                                 Bag newBag = optionalBag.get();
