@@ -36,4 +36,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.ok( new ErrorResult(ex.getLocalizedMessage()));
     }
 
+
+
 }
